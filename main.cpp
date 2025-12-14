@@ -448,35 +448,49 @@ extern "C" void* ThreadDumper(void*) {
 
 extern "C" void* ThreadStats(void*) {
   bool first = true;
-  do {
+
+  while (true) {
     char timeString[256];
-    time_t tim = time(NULL);
-    struct tm *tmp = localtime(&tim);
-    strftime(timeString, 256, "[%y-%m-%d %H:%M:%S]", tmp);
+    time_t tim = time(nullptr);
+    struct tm* tmp = localtime(&tim);
+    strftime(timeString, sizeof(timeString), "[%y-%m-%d %H:%M:%S]", tmp);
+
     CAddrDbStats stats;
     AddressDb.GetStats(stats);
-    if (first)
-    {
+
+    if (first) {
       first = false;
       printf("\n\n\n\x1b[3A");
-    }
-    else
+    } else {
       printf("\x1b[2K\x1b[u");
+    }
     printf("\x1b[s");
+
     uint64_t requests = 0;
     uint64_t queries = 0;
-    for (unsigned int i=0; i<dnsThread.size(); i++) {
-      requests += dnsThread[i]->dns_opt.nRequests;
-      queries += dnsThread[i]->dbQueries;
+
+    // IMPORTANT: dnsThread entries can be null early on (race at startup).
+    if (!dnsThread.empty()) {
+      const size_t n = dnsThread.size();          // snapshot size
+      for (size_t i = 0; i < n; i++) {
+        auto* th = dnsThread[i];
+        if (!th) continue;
+        requests += th->dns_opt.nRequests;
+        queries += th->dbQueries;
+      }
     }
+
     printf("%s %i/%i available (%i tried in %is, %i new, %i active), %i banned; %llu DNS requests, %llu db queries",
            timeString, stats.nGood, stats.nAvail, stats.nTracked, stats.nAge, stats.nNew,
            stats.nAvail - stats.nTracked - stats.nNew, stats.nBanned,
            (unsigned long long)requests, (unsigned long long)queries);
+
     Sleep(1000);
-  } while(1);
+  }
+
   return nullptr;
 }
+
 
 static const string mainnet_seeds[] =
     {
