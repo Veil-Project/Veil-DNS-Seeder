@@ -1,11 +1,15 @@
-CXXFLAGS = -O3 -g0
-LDFLAGS = $(CXXFLAGS)
+CXX ?= g++
+CXXFLAGS ?= -O3 -g0
+LIBS ?= -lcrypto
 
-dnsseed: dns.o bitcoin.o netbase.o protocol.o db.o main.o util.o
-	g++ -pthread $(LDFLAGS) -o dnsseed dns.o bitcoin.o netbase.o protocol.o db.o main.o util.o -lcrypto
+WARNFLAGS = -Wall -Wno-unused -Wno-sign-compare -Wno-reorder -Wno-comment
+OBJS = dns.o bitcoin.o netbase.o protocol.o db.o main.o util.o
+
+dnsseed: $(OBJS)
+	$(CXX) -pthread $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 %.o: %.cpp *.h
-	g++ -std=c++11 -pthread $(CXXFLAGS) -Wall -Wno-unused -Wno-sign-compare -Wno-reorder -Wno-comment -c -o $@ $<
+	$(CXX) -std=c++11 -pthread $(CPPFLAGS) $(CXXFLAGS) $(WARNFLAGS) -c -o $@ $<
 
 clean:
 	rm -f *.o dnsseed *.dump *.log *.dat report.xml
