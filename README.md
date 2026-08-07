@@ -46,6 +46,23 @@ $ make
 This will produce the `dnsseed` binary.
 
 
+If Boost or OpenSSL live outside the default prefix, pass the paths in
+rather than replacing CXXFLAGS:
+
+$ make CPPFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib"
+
+
+PROTOCOL VERSION
+----------------
+
+`PROTOCOL_VERSION` in `serialize.h` must be at least the node's
+`MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT` (`src/version.h` in
+Veil-Project/veil). Nodes reject and disconnect any peer advertising
+less than that minimum, so a stale value here silently stops the
+crawler from reaching anything. Raise it whenever the node raises its
+minimum.
+
+
 RUNNING AS NON-ROOT
 -------------------
 
@@ -58,3 +75,33 @@ $ iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-port 5353
 
 If properly configured, this will allow you to run dnsseed in userspace, using
 the -p 5353 option.
+
+
+DEPLOYING
+---------
+
+The host needs a public IP, UDP 53 reachable, and an NS delegation
+pointing the seed hostname at it. With the delegation in place:
+
+$ ./dnsseed -h dnsseed.veil-project.com -n vps.veil-project.com -m admin.veil-project.com -t 16
+
+`-t 96` is sized for a network with thousands of nodes; on Veil's
+current network 16 threads is plenty.
+
+Give it a few minutes, then check that it answers:
+
+$ dig +short @localhost -p 5353 dnsseed.veil-project.com
+
+State lives in the working directory: `dnsseed.dat` (the database,
+rewritten every five minutes) and `dnsseed.dump` (a readable table of
+every address with its availability windows, height, service flags and
+user agent). Run it from a directory the service user can write to.
+
+A systemd unit is provided in `contrib/veil-seeder.service`. Install it
+with the paths adjusted for your host:
+
+$ sudo cp contrib/veil-seeder.service /etc/systemd/system/
+$ sudo systemctl enable --now veil-seeder
+
+Once the seeder is serving answers, add its hostname to `vSeeds` in
+`src/chainparams.cpp` so nodes actually query it.
