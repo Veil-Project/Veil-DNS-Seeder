@@ -79,7 +79,10 @@ class CDataStream;
 class CAutoFile;
 static const unsigned int MAX_SIZE = 0x02000000;
 
-static const int PROTOCOL_VERSION = 70028;
+// Must be >= the node's MIN_PEER_PROTO_VERSION_AFTER_ENFORCEMENT (src/version.h
+// in Veil-Project/veil). Nodes reject and disconnect anything older once the
+// chain passes nTimeKIfork, so this has to be raised whenever that minimum is.
+static const int PROTOCOL_VERSION = 70029;
 
 // Used to bypass the rule against non-const reference to temporary
 // where it makes sense with wrappers such as CFlatData or CTxDB

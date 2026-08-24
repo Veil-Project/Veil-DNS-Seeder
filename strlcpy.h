@@ -41,6 +41,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* glibc 2.38 added strlcpy and strlcat. Where the C library provides them,
+ * defining these inline copies on top is a redeclaration error, so only
+ * supply them when it does not. */
+#if !defined(__GLIBC__) || (__GLIBC__ < 2) || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 38)
+
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters
  * will be copied.  Always NUL terminates (unless siz == 0).
@@ -109,4 +114,5 @@ inline size_t strlcat(char *dst, const char *src, size_t siz)
 
     return(dlen + (s - src)); /* count does not include NUL */
 }
+#endif /* C library lacks strlcpy/strlcat */
 #endif

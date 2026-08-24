@@ -262,10 +262,18 @@ public:
       stats.nTracked = ourId.size();
       stats.nGood = goodId.size();
       stats.nNew = unkId.size();
-      if (idToInfo[ourId[0]].ourLastTry)
-          stats.nAge = time(NULL) - idToInfo[ourId[0]].ourLastTry;
-      else
-          stats.nAge = 0;
+      stats.nBanned  = banned.size();
+    
+      if (!ourId.empty()) {
+          const auto& info = idToInfo[ourId[0]];
+          if (info.ourLastTry)
+              stats.nAge = time(NULL) - info.ourLastTry;
+          else
+              stats.nAge = 0;
+        } else {
+              stats.nAge = 0;
+        }
+
     }
   }
 

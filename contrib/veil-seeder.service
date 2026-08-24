@@ -1,0 +1,23 @@
+[Unit]
+Description=Veil DNS seeder
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Adjust User, WorkingDirectory and the -h/-n/-m arguments for this host.
+User=veilseeder
+WorkingDirectory=/var/lib/veil-seeder
+ExecStart=/usr/local/bin/dnsseed -h dnsseed.example.com -n vps.example.com -m admin.example.com -t 16 -p 5353
+Restart=on-failure
+RestartSec=30
+
+# The database and dump are written to WorkingDirectory; nothing else
+# needs to be writable.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/veil-seeder
+
+[Install]
+WantedBy=multi-user.target
