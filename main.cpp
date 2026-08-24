@@ -494,7 +494,6 @@ extern "C" void* ThreadStats(void*) {
 
 static const string mainnet_seeds[] =
     {
-      "node03.veil-project.com",
       "57.131.32.128",
       "62.72.43.203",
       "66.94.104.135",
